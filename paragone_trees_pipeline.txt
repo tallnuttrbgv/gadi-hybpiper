@@ -1,0 +1,33 @@
+
+
+#After a Hybpiper2 run, the following will resolve paralogs using paragone and build basic iqtree trees.
+
+#reformat hp2 results by gene
+
+paralogs2genes.py results/all_paralogs_joined/ genes/ 12
+
+#Run mafft aligner on samples in results/paralogs_no_chimeras_joined/
+
+qsub mafft.sh
+
+
+#Concatenate mafft alignments into matrix for quick tree
+#samples.txt is list of sample ids to include
+
+concat-genes.py "mafft_aligned/*.fna" samples.txt mafft-matrix.fna
+
+qsub fasttree.sh
+
+#Run Paragone
+
+qsub pg.sh
+
+#Note paragone outputs a lot of data that is not needed. Usually only need '23_MO_final_alignments' folder and the rest can be deleted or tar'd
+
+#Remove trees with fewer than 3 alignments
+
+clean_align.py "23_MO_final_alignments/*" MO_clean/ 3
+
+#make iqTree2 species tree, gene trees, and scf/gcf/bootstrap trees
+
+qsub iq2.sh
